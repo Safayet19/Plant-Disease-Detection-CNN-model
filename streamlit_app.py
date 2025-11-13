@@ -11,7 +11,7 @@ import tensorflow as tf
 # -------------------------------
 # Load Model Safely
 # -------------------------------
-MODEL_PATH = "best_plant_disease_model.keras"
+MODEL_PATH = "best_plant_disease_model.h5"
 
 @tf.function
 def load_keras_model(path):
