@@ -7,7 +7,7 @@ import numpy as np
 # -------------------------------
 # Load your model
 # -------------------------------
-MODEL_PATH = "best_plant_disease_model.h5"
+MODEL_PATH = "best_plant_disease_model.keras"
 model = load_model(MODEL_PATH)
 
 # -------------------------------
