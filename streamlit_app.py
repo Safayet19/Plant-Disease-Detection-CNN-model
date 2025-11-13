@@ -149,10 +149,12 @@ if uploaded_files:
                 img_resized = img.resize((128,128))
                 img_array = img_to_array(img_resized)/255.0
                 img_array = np.expand_dims(img_array, axis=0)
-
-                # Predict using TFSMLayer
-                pred = model(img_array)
-                pred = np.array(pred)  # convert to numpy
+                # Ensure img_array is float32
+                img_array = np.array(img_array, dtype=np.float32)
+                # Predict using TFSMLayer (inference mode)
+                pred = model(img_array, training=False)  # ensure inference mode
+                # Convert tensor to numpy safely
+                pred = pred.numpy() if hasattr(pred, 'numpy') else np.array(pred)
                 class_index = int(np.argmax(pred))
                 confidence = float(np.max(pred) * 100)
 
