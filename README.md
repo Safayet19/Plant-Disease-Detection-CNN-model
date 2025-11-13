@@ -16,6 +16,7 @@ Used for training/testing: ~20,000 images
 Number of classes: 38
 
 Supported crops: Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper, Potato, Raspberry, Soybean, Squash, Strawberry, Tomato
+
 Dataset:https://www.kaggle.com/datasets/vipoooool/new-plant-diseases-dataset
 
 **Class Names**
