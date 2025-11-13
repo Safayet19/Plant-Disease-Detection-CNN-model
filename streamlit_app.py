@@ -156,16 +156,20 @@ if uploaded_files:
                 img_array = img_to_array(img_resized) / 255.0
                 img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
 
-                # Predict safely using TFSMLayer
+    
+                # Predict using TFSMLayer
                 pred = model(img_array, training=False)
-                if isinstance(pred, (list, tuple)):
-                    pred = pred[0]
-                if hasattr(pred, 'numpy'):
-                    pred = pred.numpy()
-                pred = np.array(pred).flatten()
 
+                # Convert to NumPy safely
+                if hasattr(pred, "numpy"):
+                    pred = pred.numpy()
+                elif isinstance(pred, (list, tuple)):
+                    pred = np.array(pred[0])
+
+                pred = pred.flatten()  # ensure 1D array
                 class_index = int(np.argmax(pred))
                 confidence = float(np.max(pred) * 100)
+
 
                 st.image(img, caption=uploaded_file.name, use_column_width=True)
                 st.markdown(f"<p class='prediction'>Class: {class_index}</p>", unsafe_allow_html=True)
