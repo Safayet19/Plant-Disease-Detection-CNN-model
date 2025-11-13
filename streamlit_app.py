@@ -1,154 +1,128 @@
-# -------------------------------
-# Import Libraries
-# -------------------------------
 import streamlit as st
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import img_to_array
-from PIL import Image
 import numpy as np
-import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
+from PIL import Image
 
 # -------------------------------
-# Load Model Safely
-# -------------------------------
-MODEL_PATH = "best_plant_disease_model.h5"
-
-@tf.function
-def load_keras_model(path):
-    model = load_model(path, compile=False)
-    return model
-
-model = load_keras_model(MODEL_PATH)
-print("Model loaded successfully!")
-
-# -------------------------------
-# Streamlit Page Config
+# Page Config
 # -------------------------------
 st.set_page_config(
     page_title="🌿 Plant Disease Detector",
-    page_icon="🌱",
-    layout="wide"
+    page_icon="🍃",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # -------------------------------
-# Custom CSS for Vibrant UI
+# Custom Styling
 # -------------------------------
 st.markdown("""
-<style>
-.stApp {
-    background: linear-gradient(135deg, #11998e, #38ef7d);
-    color: white;
-    font-family: 'Poppins', sans-serif;
-}
-.title {
-    font-size: 60px;
-    font-weight: 900;
-    text-align: center;
-    color: #FFD700;
-    text-shadow: 0px 0px 20px #000000;
-}
-.subtitle {
-    font-size: 20px;
-    color: #F0F8FF;
-    text-align: center;
-    margin-bottom: 40px;
-}
-.prediction {
-    font-size: 65px;
-    font-weight: 900;
-    text-align: center;
-    margin-top: 15px;
-    color: white !important;
-    text-shadow: 0px 0px 25px rgba(0,0,0,0.4);
-}
-.confidence {
-    font-size: 24px;
-    text-align: center;
-    color: #FFDEAD;
-    margin-bottom: 15px;
-}
-.footer {
-    color: #EEEEEE;
-    font-size: 14px;
-    text-align: center;
-    margin-top: 40px;
-}
-hr {
-    border: 2px solid #FFD700;
-    margin: 20px 0;
-}
-[data-testid="stFileUploader"] section {
-    background-color: #ffffff20 !important;
-    border: 2px dashed #FFD700;
-    border-radius: 12px;
-    padding: 25px;
-}
-[data-testid="stFileUploader"] label {
-    color: #FFD700 !important;
-    font-size: 18px;
-    font-weight: bold;
-}
-[data-testid="stFileUploader"] button {
-    background-color: #FF4500 !important;
-    color: black !important;
-    font-weight: bold;
-    border-radius: 8px;
-    padding: 8px 20px;
-    cursor: pointer !important;
-}
-[data-testid="stFileUploader"] button:hover {
-    background-color: #FF6347 !important;
-    color: black !important;
-    cursor: pointer !important;
-}
-[data-testid="stFileUploader"] span {
-    color: #FFFFFF !important;
-}
-</style>
+    <style>
+        body {
+            background: linear-gradient(135deg, #c9ffbf, #ffafbd);
+            font-family: 'Poppins', sans-serif;
+            color: #1a1a1a;
+        }
+        .title {
+            text-align: center;
+            font-size: 42px;
+            font-weight: 800;
+            color: #1b4332;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: #2d6a4f;
+            margin-bottom: 40px;
+        }
+        .credit {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            color: #004b23;
+            background: #ffffff90;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 0 auto 30px auto;
+        }
+        .stButton>button {
+            background-color: #52b788;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+        .stButton>button:hover {
+            background-color: #2d6a4f;
+        }
+        .result-box {
+            background-color: #ffffffaa;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1b4332;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+    </style>
 """, unsafe_allow_html=True)
 
 # -------------------------------
-# Title
+# Title & Credits
 # -------------------------------
-st.markdown("<h1 class='title'>🌿 Plant Disease Detector 🌿</h1>", unsafe_allow_html=True)
-st.markdown("<p class='subtitle'>Upload leaf images to detect diseases instantly!</p>", unsafe_allow_html=True)
-st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown("<div class='title'>🌿 Plant Disease Detection System</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>Upload plant leaf photos to detect possible diseases 🍀</div>", unsafe_allow_html=True)
+st.markdown("<div class='credit'>Developed by <b>Safayet Ullah</b> — Department of CSE, Southeast University</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# Upload Section
+# Load Model (.h5)
 # -------------------------------
-uploaded_files = st.file_uploader(
-    "📂 Upload plant leaf images (JPG/PNG):", type=["jpg", "png"], accept_multiple_files=True
-)
+MODEL_PATH = "best_plant_disease_model.h5"
+
+@st.cache_resource
+def load_h5_model():
+    model = load_model(MODEL_PATH, compile=False)
+    return model
+
+model = load_h5_model()
+
+# -------------------------------
+# Image Upload
+# -------------------------------
+uploaded_files = st.file_uploader("📸 Upload Leaf Images", accept_multiple_files=True, type=["jpg", "jpeg", "png"])
 
 if uploaded_files:
-    st.write(f"Uploaded {len(uploaded_files)} image(s)")
+    st.markdown("### 🌼 Uploaded Images:")
+    cols = st.columns(4)
+    count = 0
 
-    # Show 4 images per row
-    for row_start in range(0, len(uploaded_files), 4):
-        cols = st.columns(4)
-        for i, uploaded_file in enumerate(uploaded_files[row_start:row_start+4]):
-            with cols[i]:
-                img = Image.open(uploaded_file)
-                img_resized = img.resize((128,128))
-                img_array = img_to_array(img_resized)/255.0
-                img_array = np.expand_dims(img_array, axis=0)
+    for file in uploaded_files:
+        img = Image.open(file).convert("RGB")
+        cols[count % 4].image(img, use_container_width=True, caption=file.name)
+        count += 1
+        if count % 4 == 0:
+            cols = st.columns(4)
 
-                # Predict using tf.function model
-                pred_probs = model(img_array, training=False).numpy()[0]
-                class_idx = np.argmax(pred_probs)
-                confidence = pred_probs[class_idx] * 100
+    # -------------------------------
+    # Prediction
+    # -------------------------------
+    if st.button("🌱 Detect Diseases"):
+        st.markdown("### 🔍 Detection Results")
+        for file in uploaded_files:
+            img = Image.open(file).convert("RGB")
+            img_resized = img.resize((128, 128))
+            x = image.img_to_array(img_resized)
+            x = np.expand_dims(x, axis=0)
+            x = x / 255.0
 
-                # Get class label
-                label = model.class_names[class_idx] if hasattr(model, 'class_names') else f"Class {class_idx}"
+            preds = model.predict(x)
+            result = np.argmax(preds, axis=1)[0]
 
-                st.image(img, caption=uploaded_file.name, use_column_width=True)
-                st.markdown(f"<p class='prediction'>Prediction: {label}</p>", unsafe_allow_html=True)
-                st.markdown(f"<p class='confidence'>Confidence: {confidence:.2f}%</p>", unsafe_allow_html=True)
-                st.progress(int(confidence))
-
-# -------------------------------
-# Footer
-# -------------------------------
-st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown("<p class='footer'>© 2025 Safayet Ullah | Southeast University</p>", unsafe_allow_html=True)
+            st.markdown(f"<div class='result-box'>🌾 <b>{file.name}</b> → Predicted Class Index: <span style='color:#2d6a4f;'>{result}</span></div>", unsafe_allow_html=True)
