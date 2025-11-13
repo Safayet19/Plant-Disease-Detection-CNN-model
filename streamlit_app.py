@@ -11,7 +11,6 @@ import requests, zipfile, io, os
 
 # -------------------------------
 # Page config
-# -------------------------------
 st.set_page_config(
     page_title="🌿 Plant Disease Detection",
     page_icon="🌱",
@@ -20,7 +19,6 @@ st.set_page_config(
 
 # -------------------------------
 # Custom CSS for vibrant UI
-# -------------------------------
 st.markdown("""
 <style>
 .stApp {
@@ -28,7 +26,6 @@ st.markdown("""
     font-family: 'Poppins', sans-serif;
     color: #333333;
 }
-
 .title {
     font-size: 60px;
     font-weight: 900;
@@ -96,14 +93,12 @@ hr {
 
 # -------------------------------
 # Title
-# -------------------------------
 st.markdown("<h1 class='title'>🌱 Plant Disease Detection 🌱</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Upload leaf images to detect plant diseases instantly!</p>", unsafe_allow_html=True)
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # -------------------------------
 # Step 1: Download & Extract Model from GitHub
-# -------------------------------
 MODEL_URL = "https://github.com/Safayet19/Plant-Disease-Detection-CNN-model/raw/main/plant_model.zip"
 ZIP_PATH = "plant_model.zip"
 EXTRACTED_FOLDER = "plant_model"
@@ -119,38 +114,40 @@ if not os.path.exists(EXTRACTED_FOLDER):
     st.success("✅ Model downloaded and extracted successfully!")
 
 # Detect SavedModel folder
-MODEL_FOLDER = ""
+MODEL_FOLDER = None
 for root, dirs, files in os.walk(EXTRACTED_FOLDER):
     if "saved_model.pb" in files:
         MODEL_FOLDER = root
         break
 
-if MODEL_FOLDER == "":
+if MODEL_FOLDER is None:
     st.error("❌ SavedModel not found!")
 else:
     st.write("✅ Model folder detected at:", MODEL_FOLDER)
 
 # -------------------------------
 # Step 2: Load model
-# -------------------------------
 @st.cache_resource
 def load_model_from_folder(folder):
-    model = tf.keras.models.load_model(folder)
-    return model
+    try:
+        model = tf.keras.models.load_model(folder)
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
 model = load_model_from_folder(MODEL_FOLDER)
-st.success("✅ Model loaded successfully!")
+if model:
+    st.success("✅ Model loaded successfully!")
 
 # -------------------------------
 # Step 3: Upload images
-# -------------------------------
 uploaded_files = st.file_uploader(
     "📂 Upload leaf images (JPG/PNG):", type=["jpg", "png"], accept_multiple_files=True
 )
 
-if uploaded_files:
+if uploaded_files and model:
     st.write(f"Uploaded {len(uploaded_files)} image(s)")
-
     for row_start in range(0, len(uploaded_files), 4):
         cols = st.columns(4)
         for i, uploaded_file in enumerate(uploaded_files[row_start:row_start+4]):
@@ -171,6 +168,5 @@ if uploaded_files:
 
 # -------------------------------
 # Footer
-# -------------------------------
 st.markdown("<hr>", unsafe_allow_html=True)
 st.markdown("<p class='footer'>© 2025 Safayet Ullah | Southeast University | Made with ❤️ & Streamlit | Powered by TensorFlow 🧠</p>", unsafe_allow_html=True)
