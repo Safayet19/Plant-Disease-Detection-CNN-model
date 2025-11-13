@@ -7,9 +7,12 @@ import numpy as np
 # -------------------------------
 # Load your existing .keras model
 # -------------------------------
-MODEL_PATH = "best_plant_disease_model.keras"  # your existing model
-model = load_model(MODEL_PATH)
-print("Model loaded successfully!")
+from tensorflow.keras.models import load_model
+
+MODEL_PATH = "best_plant_disease_model.keras"  # your existing .keras model
+
+# Fix for deployment: load without compile to avoid ValueError/InputSpec issues
+model = load_model(MODEL_PATH, compile=False)
 
 # -------------------------------
 # Page Config
