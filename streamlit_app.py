@@ -24,7 +24,7 @@ st.set_page_config(
 st.markdown("""
 <style>
 .stApp {
-    background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+    background: linear-gradient(135deg, #e0e0e0, #ffffff);
     font-family: 'Poppins', sans-serif;
     color: #333333;
 }
@@ -33,62 +33,63 @@ st.markdown("""
     font-size: 60px;
     font-weight: 900;
     text-align: center;
-    color: #1B4F72;
-    text-shadow: 0px 0px 10px #3498DB;
+    color: #1a472a;
+    text-shadow: 0px 0px 8px #a0c4a0;
 }
 .subtitle {
     font-size: 22px;
     text-align: center;
-    color: #2C3E50;
+    color: #2f4f4f;
     margin-bottom: 30px;
 }
 .prediction {
-    font-size: 40px;
-    font-weight: 800;
+    font-size: 48px;
+    font-weight: 900;
     text-align: center;
     margin-top: 15px;
-    color: #D35400 !important;
-    text-shadow: 0px 0px 15px #E67E22;
+    color: #004d00 !important;
+    text-shadow: 0px 0px 10px #88cc88;
 }
 .confidence {
     font-size: 22px;
     text-align: center;
-    color: #34495E;
+    color: #006600;
     margin-bottom: 15px;
 }
 .footer {
-    color: #1B2631;
-    font-size: 20px;
-    font-weight: bold;
+    color: #1a1a1a;
+    font-size: 18px;
+    font-weight: 600;
     text-align: center;
-    margin-top: 50px;
-    text-shadow: 0px 0px 5px #5D6D7E;
+    margin-top: 40px;
+    background-color: #f0f0f0;
+    padding: 15px;
+    border-radius: 10px;
 }
 hr {
-    border: 2px solid #1B4F72;
+    border: 2px solid #1a472a;
     margin-bottom: 40px;
 }
 [data-testid="stFileUploader"] section {
-    background-color: #FFFFFF !important;
-    border: 2px dashed #1B4F72;
+    background-color: #f8f8f8 !important;
+    border: 2px dashed #1a472a;
     border-radius: 12px;
     padding: 25px;
 }
 [data-testid="stFileUploader"] label {
-    color: #1B4F72 !important;
+    color: #1a472a !important;
     font-size: 18px;
     font-weight: bold;
 }
 [data-testid="stFileUploader"] button {
-    background-color: #1B4F72 !important;
+    background-color: #1a472a !important;
     color: white !important;
     font-weight: bold;
     border-radius: 8px;
     padding: 8px 20px;
 }
 [data-testid="stFileUploader"] button:hover {
-    background-color: #154360 !important;
-    color: white !important;
+    background-color: #145214 !important;
 }
 [data-testid="stFileUploader"] span {
     color: #333333 !important;
@@ -104,7 +105,7 @@ st.markdown("<p class='subtitle'>Upload leaf images to detect plant diseases ins
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # -------------------------------
-# Step 1: Download & Extract Model from GitHub
+# Download & Extract Model
 # -------------------------------
 MODEL_URL = "https://github.com/Safayet19/Plant-Disease-Detection-CNN-model/raw/main/plant_model.zip"
 ZIP_PATH = "plant_model.zip"
@@ -124,30 +125,28 @@ for root, dirs, files in os.walk(EXTRACTED_FOLDER):
         MODEL_FOLDER = root
         break
 
-if MODEL_FOLDER == "":
-    st.error("❌ SavedModel not found!")
-else:
-    st.write("✅ Model folder detected at:", MODEL_FOLDER)
-
 # -------------------------------
-# Step 2: Load model using TFSMLayer
+# Load Model using TFSMLayer
 # -------------------------------
 @st.cache_resource
-def load_model_from_folder(folder):
-    return tf.keras.layers.TFSMLayer(folder, call_endpoint='serving_default')
+def load_model(folder):
+    try:
+        model = tf.keras.models.load_model(folder)  # Keras 3 fails on old SavedModel
+        return model
+    except Exception:
+        # Use TFSMLayer for inference
+        return tf.keras.layers.TFSMLayer(folder, call_endpoint='serving_default')
 
-model = load_model_from_folder(MODEL_FOLDER)
+model = load_model(MODEL_FOLDER)
 
 # -------------------------------
-# Step 3: Upload images
+# Upload images
 # -------------------------------
 uploaded_files = st.file_uploader(
     "📂 Upload leaf images (JPG/PNG):", type=["jpg", "png"], accept_multiple_files=True
 )
 
 if uploaded_files:
-    st.write(f"Uploaded {len(uploaded_files)} image(s)")
-
     for row_start in range(0, len(uploaded_files), 4):
         cols = st.columns(4)
         for i, uploaded_file in enumerate(uploaded_files[row_start:row_start+4]):
@@ -157,13 +156,13 @@ if uploaded_files:
                 img_array = img_to_array(img_resized) / 255.0
                 img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
 
-                # Predict using TFSMLayer safely
+                # Predict safely using TFSMLayer
                 pred = model(img_array, training=False)
+                if isinstance(pred, (list, tuple)):
+                    pred = pred[0]
                 if hasattr(pred, 'numpy'):
                     pred = pred.numpy()
-                else:
-                    pred = np.array(pred)
-                pred = pred.flatten()
+                pred = np.array(pred).flatten()
 
                 class_index = int(np.argmax(pred))
                 confidence = float(np.max(pred) * 100)
@@ -171,10 +170,10 @@ if uploaded_files:
                 st.image(img, caption=uploaded_file.name, use_column_width=True)
                 st.markdown(f"<p class='prediction'>Class: {class_index}</p>", unsafe_allow_html=True)
                 st.markdown(f"<p class='confidence'>Confidence: {confidence:.2f}%</p>", unsafe_allow_html=True)
-                st.progress(min(int(confidence), 100))
+                st.progress(int(confidence))
 
 # -------------------------------
 # Footer
 # -------------------------------
 st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown("<p class='footer'>© 2025 Safayet Ullah | Southeast University </p>", unsafe_allow_html=True)
+st.markdown("<p class='footer'>© 2025 Safayet Ullah | Southeast University</p>", unsafe_allow_html=True)
