@@ -7,14 +7,11 @@ import numpy as np
 # -------------------------------
 # Load your model
 # -------------------------------
-from tensorflow.keras.models import load_model
-
-MODEL_PATH = "best_plant_disease_model.keras"  # <- your keras model file
+MODEL_PATH = "best_plant_disease_model.keras"  # your Keras model file
 
 # Load the full model (architecture + weights)
 model = load_model(MODEL_PATH)
 print("Model loaded successfully!")
-
 
 # -------------------------------
 # Page Config
@@ -72,8 +69,6 @@ hr {
     border: 2px solid #FFD700;
     margin: 20px 0;
 }
-
-/* Upload box styling */
 [data-testid="stFileUploader"] section {
     background-color: #ffffff20 !important;
     border: 2px dashed #FFD700;
@@ -130,12 +125,25 @@ if uploaded_files:
                 img_array = img_to_array(img_resized)/255.0
                 img_array = np.expand_dims(img_array, axis=0)
 
+                # Make prediction
                 pred_probs = model.predict(img_array)[0]
                 class_idx = np.argmax(pred_probs)
                 confidence = pred_probs[class_idx] * 100
 
-                # Get class label
-                label = model.class_names[class_idx] if hasattr(model, 'class_names') else f"Class {class_idx}"
+                # Replace with your class labels
+                class_labels = [
+                    "Apple___Apple_scab", "Apple___Black_rot", "Apple___Cedar_apple_rust", 
+                    "Apple___healthy", "Corn___Cercospora_leaf_spot", "Corn___Common_rust",
+                    "Corn___Northern_Leaf_Blight", "Corn___healthy", "Grape___Black_rot",
+                    "Grape___Esca_(Black_Measles)", "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)",
+                    "Grape___healthy", "Potato___Early_blight", "Potato___Late_blight",
+                    "Potato___healthy", "Tomato___Bacterial_spot", "Tomato___Early_blight",
+                    "Tomato___Late_blight", "Tomato___Leaf_Mold", "Tomato___Septoria_leaf_spot",
+                    "Tomato___Spider_mites Two-spotted_spider_mite", "Tomato___Target_Spot",
+                    "Tomato___Tomato_Yellow_Leaf_Curl_Virus", "Tomato___Tomato_mosaic_virus",
+                    "Tomato___healthy"
+                ]
+                label = class_labels[class_idx] if class_idx < len(class_labels) else f"Class {class_idx}"
 
                 st.image(img, caption=uploaded_file.name, use_column_width=True)
                 st.markdown(f"<p class='prediction'>Prediction: {label}</p>", unsafe_allow_html=True)
