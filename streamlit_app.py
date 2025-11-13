@@ -196,10 +196,17 @@ if uploaded_files:
                 img_array = img_to_array(img_resized)/255.0
                 img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
 
-                pred = model(img_array)
-                pred = tf.squeeze(pred).numpy()  # remove extra dims
+                # Predict using TFSMLayer
+                pred = model(img_array)  # TFSMLayer prediction
+
+                # Ensure it's a 1D numpy array
+                pred = np.array(pred)  # convert to numpy
+                if pred.ndim > 1:
+                    pred = pred.flatten()  # flatten if multi-dimensional
+
                 class_index = int(np.argmax(pred))
                 disease_name = class_names[class_index]
+
 
 
                 st.image(img, caption=uploaded_file.name, use_column_width=True)
