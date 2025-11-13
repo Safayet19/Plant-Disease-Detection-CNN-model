@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications import MobileNetV2
 from PIL import Image
 
 # -------------------------------
@@ -82,17 +83,17 @@ st.markdown("<div class='subtitle'>Upload plant leaf photos to detect possible d
 st.markdown("<div class='credit'>Developed by <b>Safayet Ullah</b> — Department of CSE, Southeast University</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# Load Model (.h5)
+# Load Model (.keras)
 # -------------------------------
-from tensorflow.keras.models import load_model
+MODEL_PATH = "best_plant_disease_model.keras"
 
 @st.cache_resource
 def load_keras_model():
-    model = load_model("best_plant_disease_model.keras", compile=False)
+    # MobileNetV2 functional base inside your model
+    model = load_model(MODEL_PATH, compile=False, custom_objects={"Functional": MobileNetV2})
     return model
 
 model = load_keras_model()
-
 
 # -------------------------------
 # Image Upload
@@ -118,7 +119,7 @@ if uploaded_files:
         st.markdown("### 🔍 Detection Results")
         for file in uploaded_files:
             img = Image.open(file).convert("RGB")
-            img_resized = img.resize((224, 224))  # ✅ MobileNetV2 expects 224x224
+            img_resized = img.resize((224, 224))  # MobileNetV2 input
             x = image.img_to_array(img_resized)
             x = np.expand_dims(x, axis=0)
             x = x / 255.0
