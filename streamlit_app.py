@@ -151,29 +151,28 @@ if uploaded_files:
         cols = st.columns(4)
         for i, uploaded_file in enumerate(uploaded_files[row_start:row_start+4]):
             with cols[i]:
+                # -------------------------------
+# Inside your image loop
+# -------------------------------
                 img = Image.open(uploaded_file)
-                img_resized = img.resize((128, 128))
-                img_array = img_to_array(img_resized) / 255.0
-                img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
+                img_resized = img.resize((128,128))
+                img_array = img_to_array(img_resized)/255.0
+                img_array = np.expand_dims(img_array, axis=0)
+                img_array = np.array(img_array, dtype=np.float32)
 
-    
-               # Predict using TFSMLayer
-                pred = model(img_array, training=False)
+                # Predict using TFSMLayer
+                pred = model(img_array)
 
-                # Convert pred to a NumPy 1D array safely
-                if hasattr(pred, "numpy"):
+                # Convert prediction to flat NumPy array safely
+                if hasattr(pred, "numpy"):  # if Tensor
                     pred = pred.numpy()
-                elif isinstance(pred, (list, tuple)):
-                    # Handle nested outputs
-                    pred = pred[0]
-                    if hasattr(pred, "numpy"):
-                        pred = pred.numpy()
-                pred = np.array(pred).reshape(-1)  # safe 1D conversion
+                pred = np.array(pred).flatten()  # ensure 1D array
 
+                # Now safe to get class and confidence
                 class_index = int(np.argmax(pred))
                 confidence = float(np.max(pred) * 100)
 
-
+                #
 
                 st.image(img, caption=uploaded_file.name, use_column_width=True)
                 st.markdown(f"<p class='prediction'>Class: {class_index}</p>", unsafe_allow_html=True)
