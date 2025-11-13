@@ -84,14 +84,15 @@ st.markdown("<div class='credit'>Developed by <b>Safayet Ullah</b> — Departmen
 # -------------------------------
 # Load Model (.h5)
 # -------------------------------
-MODEL_PATH = "best_plant_disease_model.h5"
+from tensorflow.keras.models import load_model
 
 @st.cache_resource
-def load_h5_model():
-    model = load_model(MODEL_PATH, compile=False)
+def load_keras_model():
+    model = load_model("best_plant_disease_model.keras", compile=False)
     return model
 
-model = load_h5_model()
+model = load_keras_model()
+
 
 # -------------------------------
 # Image Upload
