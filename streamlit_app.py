@@ -7,19 +7,14 @@ from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.models import load_model
 
-# -------------------------------
-# Load Model Safely
-# -------------------------------
-MODEL_PATH = "best_plant_disease_model.keras"
-
-@tf.function
+@tf.autograph.experimental.do_not_convert
 def load_keras_model(path):
-    model = load_model(path, compile=False)
-    return model
+    return load_model(path, compile=False)
 
-model = load_keras_model(MODEL_PATH)
-print("Model loaded successfully!")
+model = load_keras_model("best_plant_disease_model.keras")
+
 
 # -------------------------------
 # Streamlit Page Config
