@@ -138,24 +138,46 @@ model = load_model(MODEL_FOLDER)
 # Step 3: Define class names
 # -------------------------------
 class_names = [
-    'Apple___Apple_scab', 'Apple___Black_rot', 'Apple___Cedar_apple_rust', 'Apple___healthy',
-    'Blueberry___healthy',
-    'Cherry_(including_sour)___Powdery_mildew', 'Cherry_(including_sour)___healthy',
-    'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot', 'Corn_(maize)___Common_rust_',
-    'Corn_(maize)___Northern_Leaf_Blight', 'Corn_(maize)___healthy',
-    'Grape___Black_rot', 'Grape___Esca_(Black_Measles)', 'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)',
-    'Grape___healthy', 'Orange___Haunglongbing_(Citrus_greening)',
-    'Peach___Bacterial_spot', 'Peach___healthy',
-    'Pepper,_bell___Bacterial_spot', 'Pepper,_bell___healthy',
-    'Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy',
-    'Raspberry___healthy', 'Soybean___healthy',
-    'Squash___Powdery_mildew',
-    'Strawberry___Leaf_scorch', 'Strawberry___healthy',
-    'Tomato___Bacterial_spot', 'Tomato___Early_blight', 'Tomato___Late_blight',
-    'Tomato___Leaf_Mold', 'Tomato___Septoria_leaf_spot',
-    'Tomato___Spider_mites Two-spotted_spider_mite', 'Tomato___Target_Spot',
-    'Tomato___Tomato_Yellow_Leaf_Curl_Virus', 'Tomato___Tomato_mosaic_virus', 'Tomato___healthy'
+    "Apple Scab",
+    "Apple Black Rot",
+    "Apple Cedar Apple Rust",
+    "Apple Healthy",
+    "Blueberry Healthy",
+    "Cherry (Including Sour) Powdery Mildew",
+    "Cherry (Including Sour) Healthy",
+    "Corn (Maize) Cercospora Leaf Spot Gray Leaf Spot",
+    "Corn (Maize) Common Rust",
+    "Corn (Maize) Northern Leaf Blight",
+    "Corn (Maize) Healthy",
+    "Grape Black Rot",
+    "Grape Esca (Black Measles)",
+    "Grape Leaf Blight (Isariopsis Leaf Spot)",
+    "Grape Healthy",
+    "Orange Huanglongbing (Citrus Greening)",
+    "Peach Bacterial Spot",
+    "Peach Healthy",
+    "Pepper, Bell Bacterial Spot",
+    "Pepper, Bell Healthy",
+    "Potato Early Blight",
+    "Potato Late Blight",
+    "Potato Healthy",
+    "Raspberry Healthy",
+    "Soybean Healthy",
+    "Squash Powdery Mildew",
+    "Strawberry Leaf Scorch",
+    "Strawberry Healthy",
+    "Tomato Bacterial Spot",
+    "Tomato Early Blight",
+    "Tomato Late Blight",
+    "Tomato Leaf Mold",
+    "Tomato Septoria Leaf Spot",
+    "Tomato Spider Mites Two-Spotted Spider Mite",
+    "Tomato Target Spot",
+    "Tomato Yellow Leaf Curl Virus",
+    "Tomato Mosaic Virus",
+    "Tomato Healthy"
 ]
+
 
 # -------------------------------
 # Step 4: Upload images
@@ -174,11 +196,11 @@ if uploaded_files:
                 img_array = img_to_array(img_resized)/255.0
                 img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
 
-                # Predict using TFSMLayer
                 pred = model(img_array)
-                pred = np.array(pred).flatten()  # 1D array
+                pred = tf.squeeze(pred).numpy()  # remove extra dims
                 class_index = int(np.argmax(pred))
                 disease_name = class_names[class_index]
+
 
                 st.image(img, caption=uploaded_file.name, use_column_width=True)
                 st.markdown(f"<p class='prediction'>Disease Detected: {disease_name}</p>", unsafe_allow_html=True)
