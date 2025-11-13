@@ -19,12 +19,12 @@ st.set_page_config(
 )
 
 # -------------------------------
-# Custom CSS for professional UI
+# Custom CSS for vibrant and professional UI
 # -------------------------------
 st.markdown("""
 <style>
 .stApp {
-    background: linear-gradient(135deg, #e0e0e0, #ffffff);
+    background: linear-gradient(135deg, #E0F7FA, #B2EBF2);
     font-family: 'Poppins', sans-serif;
     color: #333333;
 }
@@ -33,63 +33,55 @@ st.markdown("""
     font-size: 60px;
     font-weight: 900;
     text-align: center;
-    color: #1a472a;
-    text-shadow: 0px 0px 8px #a0c4a0;
+    color: #00695C;
+    text-shadow: 0px 0px 10px #004D40;
 }
 .subtitle {
     font-size: 22px;
     text-align: center;
-    color: #2f4f4f;
+    color: #00796B;
     margin-bottom: 30px;
 }
 .prediction {
-    font-size: 48px;
-    font-weight: 900;
+    font-size: 28px;
+    font-weight: 700;
     text-align: center;
     margin-top: 15px;
-    color: #004d00 !important;
-    text-shadow: 0px 0px 10px #88cc88;
-}
-.confidence {
-    font-size: 22px;
-    text-align: center;
-    color: #006600;
-    margin-bottom: 15px;
+    color: #D84315 !important;
+    text-shadow: 0px 0px 10px #FF8A65;
 }
 .footer {
-    color: #1a1a1a;
-    font-size: 18px;
+    color: #004D40;
+    font-size: 20px;
     font-weight: 600;
     text-align: center;
-    margin-top: 40px;
-    background-color: #f0f0f0;
-    padding: 15px;
-    border-radius: 10px;
+    margin-top: 50px;
 }
 hr {
-    border: 2px solid #1a472a;
+    border: 2px solid #00796B;
     margin-bottom: 40px;
 }
 [data-testid="stFileUploader"] section {
-    background-color: #f8f8f8 !important;
-    border: 2px dashed #1a472a;
+    background-color: #E0F2F1 !important;
+    border: 2px dashed #00796B;
     border-radius: 12px;
     padding: 25px;
 }
 [data-testid="stFileUploader"] label {
-    color: #1a472a !important;
+    color: #00796B !important;
     font-size: 18px;
     font-weight: bold;
 }
 [data-testid="stFileUploader"] button {
-    background-color: #1a472a !important;
+    background-color: #00796B !important;
     color: white !important;
     font-weight: bold;
     border-radius: 8px;
     padding: 8px 20px;
 }
 [data-testid="stFileUploader"] button:hover {
-    background-color: #145214 !important;
+    background-color: #004D40 !important;
+    color: white !important;
 }
 [data-testid="stFileUploader"] span {
     color: #333333 !important;
@@ -105,7 +97,7 @@ st.markdown("<p class='subtitle'>Upload leaf images to detect plant diseases ins
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # -------------------------------
-# Download & Extract Model
+# Step 1: Download & Extract Model from GitHub
 # -------------------------------
 MODEL_URL = "https://github.com/Safayet19/Plant-Disease-Detection-CNN-model/raw/main/plant_model.zip"
 ZIP_PATH = "plant_model.zip"
@@ -126,21 +118,14 @@ for root, dirs, files in os.walk(EXTRACTED_FOLDER):
         break
 
 # -------------------------------
-# Load Model using TFSMLayer
+# Step 2: Load model using TFSMLayer (Keras 3 compatible)
 # -------------------------------
-@st.cache_resource
-def load_model(folder):
-    try:
-        model = tf.keras.models.load_model(folder)  # Keras 3 fails on old SavedModel
-        return model
-    except Exception:
-        # Use TFSMLayer for inference
-        return tf.keras.layers.TFSMLayer(folder, call_endpoint='serving_default')
+from keras.layers import TFSMLayer
 
-model = load_model(MODEL_FOLDER)
+model = TFSMLayer(MODEL_FOLDER, call_endpoint='serving_default')
 
 # -------------------------------
-# Upload images
+# Step 3: Upload images
 # -------------------------------
 uploaded_files = st.file_uploader(
     "📂 Upload leaf images (JPG/PNG):", type=["jpg", "png"], accept_multiple_files=True
@@ -151,9 +136,6 @@ if uploaded_files:
         cols = st.columns(4)
         for i, uploaded_file in enumerate(uploaded_files[row_start:row_start+4]):
             with cols[i]:
-                # -------------------------------
-# Inside your image loop
-# -------------------------------
                 img = Image.open(uploaded_file)
                 img_resized = img.resize((128,128))
                 img_array = img_to_array(img_resized)/255.0
@@ -162,25 +144,14 @@ if uploaded_files:
 
                 # Predict using TFSMLayer
                 pred = model(img_array)
-
-                # Convert prediction to flat NumPy array safely
-                if hasattr(pred, "numpy"):  # if Tensor
-                    pred = pred.numpy()
-                pred = np.array(pred).flatten()  # ensure 1D array
-
-                # Now safe to get class and confidence
+                pred = np.array(pred).ravel()  # ensure 1D array
                 class_index = int(np.argmax(pred))
-                confidence = float(np.max(pred) * 100)
-
-                #
 
                 st.image(img, caption=uploaded_file.name, use_column_width=True)
-                st.markdown(f"<p class='prediction'>Class: {class_index}</p>", unsafe_allow_html=True)
-                st.markdown(f"<p class='confidence'>Confidence: {confidence:.2f}%</p>", unsafe_allow_html=True)
-                st.progress(int(confidence))
+                st.markdown(f"<p class='prediction'>Predicted Class: {class_index}</p>", unsafe_allow_html=True)
 
 # -------------------------------
 # Footer
 # -------------------------------
 st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown("<p class='footer'>© 2025 Safayet Ullah | Southeast University</p>", unsafe_allow_html=True)
+st.markdown("<p class='footer'>© 2025 Safayet Ullah | Southeast University </p>", unsafe_allow_html=True)
