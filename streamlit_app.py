@@ -7,8 +7,14 @@ import numpy as np
 # -------------------------------
 # Load your model
 # -------------------------------
-MODEL_PATH = "best_plant_disease_model.keras"
+from tensorflow.keras.models import load_model
+
+MODEL_PATH = "best_plant_disease_model.keras"  # <- your keras model file
+
+# Load the full model (architecture + weights)
 model = load_model(MODEL_PATH)
+print("Model loaded successfully!")
+
 
 # -------------------------------
 # Page Config
