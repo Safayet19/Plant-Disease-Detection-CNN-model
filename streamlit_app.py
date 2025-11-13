@@ -19,12 +19,12 @@ st.set_page_config(
 )
 
 # -------------------------------
-# Custom CSS for vibrant and professional UI
+# Custom CSS for professional UI
 # -------------------------------
 st.markdown("""
 <style>
 .stApp {
-    background: linear-gradient(135deg, #E0F7FA, #B2EBF2);
+    background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
     font-family: 'Poppins', sans-serif;
     color: #333333;
 }
@@ -33,55 +33,54 @@ st.markdown("""
     font-size: 60px;
     font-weight: 900;
     text-align: center;
-    color: #00695C;
-    text-shadow: 0px 0px 10px #004D40;
+    color: #1B3A4B;
+    text-shadow: 0px 0px 12px #4B8BBE;
 }
 .subtitle {
     font-size: 22px;
     text-align: center;
-    color: #00796B;
+    color: #334E68;
     margin-bottom: 30px;
 }
 .prediction {
-    font-size: 28px;
+    font-size: 36px;
     font-weight: 700;
     text-align: center;
     margin-top: 15px;
-    color: #D84315 !important;
-    text-shadow: 0px 0px 10px #FF8A65;
-}
-.footer {
-    color: #004D40;
-    font-size: 20px;
-    font-weight: 600;
-    text-align: center;
-    margin-top: 50px;
+    color: #116466 !important;
+    text-shadow: 0px 0px 10px #D9BF77;
 }
 hr {
-    border: 2px solid #00796B;
+    border: 2px solid #116466;
     margin-bottom: 40px;
 }
+.footer {
+    color: #1B3A4B;
+    font-size: 22px;
+    text-align: center;
+    margin-top: 40px;
+    font-weight: 700;
+}
 [data-testid="stFileUploader"] section {
-    background-color: #E0F2F1 !important;
-    border: 2px dashed #00796B;
+    background-color: #FFFFFF !important;
+    border: 2px dashed #116466;
     border-radius: 12px;
     padding: 25px;
 }
 [data-testid="stFileUploader"] label {
-    color: #00796B !important;
+    color: #116466 !important;
     font-size: 18px;
     font-weight: bold;
 }
 [data-testid="stFileUploader"] button {
-    background-color: #00796B !important;
+    background-color: #116466 !important;
     color: white !important;
     font-weight: bold;
     border-radius: 8px;
     padding: 8px 20px;
 }
 [data-testid="stFileUploader"] button:hover {
-    background-color: #004D40 !important;
-    color: white !important;
+    background-color: #0D2C3C !important;
 }
 [data-testid="stFileUploader"] span {
     color: #333333 !important;
@@ -104,9 +103,11 @@ ZIP_PATH = "plant_model.zip"
 EXTRACTED_FOLDER = "plant_model"
 
 if not os.path.exists(EXTRACTED_FOLDER):
+    # Download
     response = requests.get(MODEL_URL)
     with open(ZIP_PATH, "wb") as f:
         f.write(response.content)
+    # Extract
     with zipfile.ZipFile(ZIP_PATH, "r") as zip_ref:
         zip_ref.extractall(EXTRACTED_FOLDER)
 
@@ -125,7 +126,18 @@ from keras.layers import TFSMLayer
 model = TFSMLayer(MODEL_FOLDER, call_endpoint='serving_default')
 
 # -------------------------------
-# Step 3: Upload images
+# Step 3: Class names for prediction
+# -------------------------------
+class_names = [
+    "Apple Scab", "Apple Black Rot", "Apple Cedar Rust", "Apple Healthy",
+    "Potato Early Blight", "Potato Late Blight", "Potato Healthy",
+    "Tomato Leaf Mold", "Tomato Septoria Leaf Spot", "Tomato Early Blight",
+    "Tomato Late Blight", "Tomato Bacterial Spot", "Tomato Yellow Leaf Curl Virus",
+    "Tomato Mosaic Virus", "Tomato Healthy"
+]
+
+# -------------------------------
+# Step 4: Upload images
 # -------------------------------
 uploaded_files = st.file_uploader(
     "📂 Upload leaf images (JPG/PNG):", type=["jpg", "png"], accept_multiple_files=True
@@ -144,11 +156,12 @@ if uploaded_files:
 
                 # Predict using TFSMLayer
                 pred = model(img_array)
-                pred = np.array(pred).ravel()  # ensure 1D array
+                pred = np.array(pred).ravel()  # ensure 1D
                 class_index = int(np.argmax(pred))
+                predicted_class = class_names[class_index]
 
                 st.image(img, caption=uploaded_file.name, use_column_width=True)
-                st.markdown(f"<p class='prediction'>Predicted Class: {class_index}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p class='prediction'>Predicted Disease: <strong>{predicted_class}</strong></p>", unsafe_allow_html=True)
 
 # -------------------------------
 # Footer
