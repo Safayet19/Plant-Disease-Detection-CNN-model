@@ -1,8 +1,9 @@
 import streamlit as st
 import numpy as np
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout, Input
+from tensorflow.keras.preprocessing import image
 from PIL import Image
 
 # -------------------------------
@@ -83,17 +84,23 @@ st.markdown("<div class='subtitle'>Upload plant leaf photos to detect possible d
 st.markdown("<div class='credit'>Developed by <b>Safayet Ullah</b> — Department of CSE, Southeast University</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# Load Model (.keras)
+# Load Model and Weights
 # -------------------------------
-MODEL_PATH = "best_plant_disease_model.keras"
+MODEL_WEIGHTS_PATH = "best_plant_disease_model.h5"  # your existing weights
 
 @st.cache_resource
-def load_keras_model():
-    # MobileNetV2 functional base inside your model
-    model = load_model(MODEL_PATH, compile=False, custom_objects={"Functional": MobileNetV2})
+def load_model_with_weights():
+    base_model = MobileNetV2(weights=None, include_top=False, input_tensor=Input(shape=(224,224,3)))
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(256, activation='relu')(x)
+    x = Dropout(0.3)(x)
+    predictions = Dense(38, activation='softmax')(x)  # adjust number of classes
+    model = Model(inputs=base_model.input, outputs=predictions)
+    model.load_weights(MODEL_WEIGHTS_PATH)
     return model
 
-model = load_keras_model()
+model = load_model_with_weights()
 
 # -------------------------------
 # Image Upload
@@ -119,7 +126,7 @@ if uploaded_files:
         st.markdown("### 🔍 Detection Results")
         for file in uploaded_files:
             img = Image.open(file).convert("RGB")
-            img_resized = img.resize((224, 224))  # MobileNetV2 input
+            img_resized = img.resize((224, 224))
             x = image.img_to_array(img_resized)
             x = np.expand_dims(x, axis=0)
             x = x / 255.0
