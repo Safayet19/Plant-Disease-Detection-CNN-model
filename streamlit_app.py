@@ -117,7 +117,7 @@ if uploaded_files:
         st.markdown("### 🔍 Detection Results")
         for file in uploaded_files:
             img = Image.open(file).convert("RGB")
-            img_resized = img.resize((128, 128))
+            img_resized = img.resize((224, 224))  # ✅ MobileNetV2 expects 224x224
             x = image.img_to_array(img_resized)
             x = np.expand_dims(x, axis=0)
             x = x / 255.0
@@ -125,4 +125,8 @@ if uploaded_files:
             preds = model.predict(x)
             result = np.argmax(preds, axis=1)[0]
 
-            st.markdown(f"<div class='result-box'>🌾 <b>{file.name}</b> → Predicted Class Index: <span style='color:#2d6a4f;'>{result}</span></div>", unsafe_allow_html=True)
+            st.markdown(
+                f"<div class='result-box'>🌾 <b>{file.name}</b> → Predicted Class Index: "
+                f"<span style='color:#2d6a4f;'>{result}</span></div>",
+                unsafe_allow_html=True
+            )
